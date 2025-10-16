@@ -8,10 +8,15 @@ class MovieRemoteDataSource {
 
   MovieRemoteDataSource(this.client);
 
+  Map<String, String> get _headers => {
+        'Authorization': 'Bearer ${EnvConfig.apiKey}',
+        'Content-Type': 'application/json',
+      };
+
   Future<List<MovieModel>> getTrending() async {
     final res = await client.get(
       ApiUrls.trending,
-      queryParameters: {'api_key': EnvConfig.apiKey},
+      options: Options(headers: _headers),
     );
     final results = res.data['results'] as List;
     return results.map((e) => MovieModel.fromJson(e)).toList();
@@ -20,7 +25,7 @@ class MovieRemoteDataSource {
   Future<List<MovieModel>> getUpcoming() async {
     final res = await client.get(
       ApiUrls.upcoming,
-      queryParameters: {'api_key': EnvConfig.apiKey},
+      options: Options(headers: _headers),
     );
     final results = res.data['results'] as List;
     return results.map((e) => MovieModel.fromJson(e)).toList();
@@ -29,7 +34,7 @@ class MovieRemoteDataSource {
   Future<MovieModel> getMovieDetail(int id) async {
     final res = await client.get(
       '${ApiUrls.movieDetail}/$id',
-      queryParameters: {'api_key': EnvConfig.apiKey},
+      options: Options(headers: _headers),
     );
     return MovieModel.fromJson(res.data);
   }
