@@ -2,6 +2,7 @@ import 'package:app_movie/core/config/env.config.dart';
 import 'package:app_movie/core/utils/navigation_service.dart';
 import 'package:app_movie/features/movie/presentation/cubit/movies_cubit.dart';
 import 'package:app_movie/features/movie/presentation/pages/movies_page.dart';
+import 'package:app_movie/features/movie/presentation/pages/splash_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -34,7 +35,7 @@ class MainApp extends StatelessWidget {
         title: 'Movie App',
         navigatorKey: NavigationService.navigatorKey,
         theme: ThemeData.dark(),
-        home: const MoviesPage(),
+        home: const SplashPage(),
       ),
     );
   }
