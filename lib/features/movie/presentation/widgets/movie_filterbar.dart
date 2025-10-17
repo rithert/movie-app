@@ -13,13 +13,10 @@ class MovieFilterBar extends StatelessWidget {
 
   static const List<String> movieFilters = [
     'Todos',
-    'Acción',
-    'Comedia',
-    'Drama',
-    'Terror',
-    'Ciencia Ficción',
-    'Romance',
-    'Aventura',
+    'Inglés',
+    'Español',
+    '2024',
+    '2025',
   ];
 
   @override

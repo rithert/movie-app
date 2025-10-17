@@ -1,3 +1,5 @@
+import 'package:app_movie/features/movie/data/models/movie_model.dart';
+import 'package:app_movie/features/movie/domain/entities/movie.dart';
 import 'package:app_movie/features/movie/presentation/cubit/movies_cubit.dart';
 import 'package:app_movie/features/movie/presentation/widgets/error_view.dart';
 import 'package:app_movie/features/movie/presentation/widgets/loading_view.dart';
@@ -28,6 +30,40 @@ class _MoviesPageState extends State<MoviesPage>
     print('Filtro seleccionado: $filter');
   }
 
+  List<Movie> _filterMovies(List<Movie> movies) {
+    List<Movie> filteredMovies = movies;
+
+    switch (_selectedFilter) {
+      case 'Inglés':
+        filteredMovies =
+            movies.where((movie) => movie.originalLanguage == 'en').toList();
+        break;
+      case 'Español':
+        filteredMovies =
+            movies.where((movie) => movie.originalLanguage == 'es').toList();
+        break;
+      case '2024':
+        filteredMovies = movies.where((movie) {
+          if (movie.releaseDate.isEmpty) return false;
+          return movie.releaseDate.startsWith('2024');
+        }).toList();
+        break;
+      case '2025':
+        filteredMovies = movies.where((movie) {
+          if (movie.releaseDate.isEmpty) return false;
+          return movie.releaseDate.startsWith('2025');
+        }).toList();
+        break;
+      case 'Todos':
+      default:
+        filteredMovies = movies;
+        break;
+    }
+
+    // Limitar a máximo 6 películas
+    return filteredMovies.take(6).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -48,6 +84,7 @@ class _MoviesPageState extends State<MoviesPage>
               final movies = state.movies;
               final upcoming = movies.where((m) => m.isUpcoming).toList();
               final trending = movies.where((m) => m.isTrending).toList();
+              final recommended = _filterMovies(trending);
 
               return CustomScrollView(
                 key: const PageStorageKey('moviesScroll'),
@@ -96,10 +133,7 @@ class _MoviesPageState extends State<MoviesPage>
                           ),
                           const SizedBox(height: 8),
                           MoviesGridWidget(
-                            movies: trending
-                                .where((movie) =>
-                                    _selectedFilter == 'Todos' || true)
-                                .toList(),
+                            movies: recommended,
                           ),
                         ],
                       ),
