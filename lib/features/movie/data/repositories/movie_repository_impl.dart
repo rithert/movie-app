@@ -19,31 +19,53 @@ class MovieRepositoryImpl implements MovieRepository {
 
   @override
   Future<List<Movie>> getTrendingMovies() async {
-    if (await networkInfo.isConnected) {
-      final movies = await remote.getTrending();
-      await local.cacheMovies('trending', movies);
-      return movies;
-    } else {
-      return local.getCachedMovies('trending');
+    try {
+      if (await networkInfo.isConnected) {
+        final movies = await remote.getTrending();
+        await local.cacheMovies('trending', movies);
+        return movies;
+      } else {
+        return await local.getCachedMovies('trending');
+      }
+    } catch (e) {
+      // Si hay error de red, intentar usar caché
+      final cachedMovies = await local.getCachedMovies('trending');
+      if (cachedMovies.isNotEmpty) {
+        return cachedMovies;
+      }
+      rethrow; // Si no hay caché, lanzar el error original
     }
   }
 
   @override
   Future<List<Movie>> getUpcomingMovies() async {
-    if (await networkInfo.isConnected) {
-      final movies = await remote.getUpcoming();
-      await local.cacheMovies('upcoming', movies);
-      return movies;
-    } else {
-      return local.getCachedMovies('upcoming');
+    try {
+      if (await networkInfo.isConnected) {
+        final movies = await remote.getUpcoming();
+        await local.cacheMovies('upcoming', movies);
+        return movies;
+      } else {
+        return await local.getCachedMovies('upcoming');
+      }
+    } catch (e) {
+      // Si hay error de red, intentar usar caché
+      final cachedMovies = await local.getCachedMovies('upcoming');
+      if (cachedMovies.isNotEmpty) {
+        return cachedMovies;
+      }
+      rethrow; // Si no hay caché, lanzar el error original
     }
   }
 
   @override
   Future<MovieDetailModel> getMovieDetail(int id) async {
     if (await networkInfo.isConnected) {
-      final movie = await remote.getMovieDetail(id);
-      return movie;
+      try {
+        final movie = await remote.getMovieDetail(id);
+        return movie;
+      } catch (e) {
+        throw Exception('Error al cargar detalles de la película');
+      }
     } else {
       throw Exception('No hay conexión a internet');
     }

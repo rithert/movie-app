@@ -8,6 +8,7 @@ import 'package:app_movie/features/movie/domain/entities/movie.dart';
 import 'package:app_movie/features/movie/presentation/cubit/movies_cubit.dart';
 import 'package:app_movie/features/movie/presentation/widgets/error_view.dart';
 import 'package:app_movie/injection_container.dart' as di;
+import 'package:cached_network_image/cached_network_image.dart'; // Añadir import
 
 class MovieDetailPage extends StatefulWidget {
   final Movie movie;
@@ -70,22 +71,42 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
             background: Stack(
               fit: StackFit.expand,
               children: [
-                // Imagen de fondo (usar backdrop si está disponible)
-                Image.network(
-                  detail?.backdropPath != null
+                // Imagen de fondo con CachedNetworkImage
+                CachedNetworkImage(
+                  imageUrl: detail?.backdropPath != null
                       ? 'https://image.tmdb.org/t/p/w780${detail!.backdropPath}'
                       : movie.posterUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[800],
-                      child: const Icon(
-                        Icons.movie,
-                        color: Colors.white,
-                        size: 100,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[800],
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.red,
+                        strokeWidth: 3,
                       ),
-                    );
-                  },
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: Colors.grey[800],
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.movie,
+                          color: Colors.white,
+                          size: 100,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Sin imagen disponible',
+                          style: TextStyle(
+                            color: Colors.grey[400],
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
                 // Gradiente
                 Container(
