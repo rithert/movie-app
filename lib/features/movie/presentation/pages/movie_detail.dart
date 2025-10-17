@@ -1,14 +1,15 @@
 import 'package:app_movie/core/utils/navigation_service.dart';
 import 'package:app_movie/features/movie/data/models/detail_movie.dart';
+import 'package:app_movie/features/movie/data/models/video_model.dart';
 import 'package:app_movie/features/movie/presentation/cubit/movies_detail_cubit.dart';
 import 'package:app_movie/features/movie/presentation/cubit/movies_detail_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_movie/features/movie/domain/entities/movie.dart';
-import 'package:app_movie/features/movie/presentation/cubit/movies_cubit.dart';
 import 'package:app_movie/features/movie/presentation/widgets/error_view.dart';
 import 'package:app_movie/injection_container.dart' as di;
-import 'package:cached_network_image/cached_network_image.dart'; // Añadir import
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart'; // Agregar este import
 
 class MovieDetailPage extends StatefulWidget {
   final Movie movie;
@@ -45,18 +46,80 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
               );
             } else if (state is MovieDetailLoaded) {
               return _buildMovieDetail(
-                  context, widget.movie, state.movieDetail);
+                  context, widget.movie, state.movieDetail, state.videos);
             }
 
-            return _buildMovieDetail(context, widget.movie, null);
+            return _buildMovieDetail(context, widget.movie, null, []);
           },
         ),
       ),
     );
   }
 
-  Widget _buildMovieDetail(
-      BuildContext context, Movie movie, MovieDetailModel? detail) {
+  // Método para obtener el trailer principal
+  VideoModel? _getMainTrailer(List<VideoModel> videos) {
+    if (videos.isEmpty) return null;
+
+    // Buscar trailer oficial de YouTube
+    final officialTrailers = videos
+        .where((video) =>
+            video.site.toLowerCase() == 'youtube' &&
+            video.type.toLowerCase() == 'trailer' &&
+            video.official)
+        .toList();
+
+    if (officialTrailers.isNotEmpty) {
+      return officialTrailers.first;
+    }
+
+    // Si no hay oficial, buscar cualquier trailer de YouTube
+    final youtubeTrailers = videos
+        .where((video) =>
+            video.site.toLowerCase() == 'youtube' &&
+            video.type.toLowerCase() == 'trailer')
+        .toList();
+
+    if (youtubeTrailers.isNotEmpty) {
+      return youtubeTrailers.first;
+    }
+
+    // Si no hay trailers, devolver el primer video de YouTube
+    final youtubeVideos =
+        videos.where((video) => video.site.toLowerCase() == 'youtube').toList();
+
+    return youtubeVideos.isNotEmpty ? youtubeVideos.first : null;
+  }
+
+  // Método para abrir el trailer
+  Future<void> _openTrailer(String youtubeKey) async {
+    final url = 'https://www.youtube.com/watch?v=$youtubeKey';
+    final Uri uri = Uri.parse(url);
+
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+      } else {
+        throw 'No se pudo abrir el trailer';
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al abrir el trailer: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildMovieDetail(BuildContext context, Movie movie,
+      MovieDetailModel? detail, List<VideoModel> videos) {
+    final mainTrailer = _getMainTrailer(videos);
+
     return CustomScrollView(
       slivers: [
         SliverAppBar(
@@ -71,7 +134,7 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
             background: Stack(
               fit: StackFit.expand,
               children: [
-                // Imagen de fondo con CachedNetworkImage
+                // ...existing image code...
                 CachedNetworkImage(
                   imageUrl: detail?.backdropPath != null
                       ? 'https://image.tmdb.org/t/p/w780${detail!.backdropPath}'
@@ -130,7 +193,7 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Título
+                      // ...existing title and info code...
                       Text(
                         movie.title,
                         style: const TextStyle(
@@ -216,23 +279,20 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      // Botón Ver trailer
+                      // Botón Ver trailer (ACTUALIZADO)
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: () {
-                            // TODO: Implementar lógica para ver trailer
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content:
-                                    Text('Función de trailer próximamente'),
-                              ),
-                            );
-                          },
+                          onPressed: mainTrailer != null
+                              ? () => _openTrailer(mainTrailer.key)
+                              : null,
                           icon: const Icon(Icons.play_arrow),
-                          label: const Text('Ver trailer'),
+                          label: Text(mainTrailer != null
+                              ? 'Ver trailer'
+                              : 'Trailer no disponible'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
+                            backgroundColor:
+                                mainTrailer != null ? Colors.red : Colors.grey,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
@@ -248,13 +308,14 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
             ),
           ),
         ),
+        // ...existing sliver content...
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Sección Sinopsis
+                // ...existing content...
                 const Text(
                   'SINOPSIS',
                   style: TextStyle(
@@ -274,7 +335,6 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
                   ),
                 ),
 
-                // Información adicional (solo cuando hay detalles cargados)
                 if (detail != null) ...[
                   const SizedBox(height: 24),
                   const Text(
@@ -306,6 +366,7 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
     );
   }
 
+  // ...existing methods...
   Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),

@@ -1,4 +1,5 @@
 import 'package:app_movie/features/movie/data/models/detail_movie.dart';
+import 'package:app_movie/features/movie/data/models/video_model.dart';
 
 import '../../domain/entities/movie.dart';
 import '../../domain/repositories/movie_repository.dart';
@@ -48,12 +49,11 @@ class MovieRepositoryImpl implements MovieRepository {
         return await local.getCachedMovies('upcoming');
       }
     } catch (e) {
-      // Si hay error de red, intentar usar caché
       final cachedMovies = await local.getCachedMovies('upcoming');
       if (cachedMovies.isNotEmpty) {
         return cachedMovies;
       }
-      rethrow; // Si no hay caché, lanzar el error original
+      rethrow;
     }
   }
 
@@ -65,6 +65,20 @@ class MovieRepositoryImpl implements MovieRepository {
         return movie;
       } catch (e) {
         throw Exception('Error al cargar detalles de la película');
+      }
+    } else {
+      throw Exception('No hay conexión a internet');
+    }
+  }
+
+  @override
+  Future<List<VideoModel>> getMovieVideos(int movieId) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final videos = await remote.getMovieVideos(movieId);
+        return videos;
+      } catch (e) {
+        throw Exception('Error al cargar videos de la película');
       }
     } else {
       throw Exception('No hay conexión a internet');

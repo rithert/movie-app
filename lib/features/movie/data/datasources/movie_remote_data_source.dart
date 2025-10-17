@@ -1,6 +1,7 @@
 import 'package:app_movie/core/config/env.config.dart';
 import 'package:app_movie/core/constants/api_url.dart';
 import 'package:app_movie/features/movie/data/models/detail_movie.dart';
+import 'package:app_movie/features/movie/data/models/video_model.dart';
 import 'package:dio/dio.dart';
 import '../models/movie_model.dart';
 
@@ -38,5 +39,14 @@ class MovieRemoteDataSource {
       options: Options(headers: _headers),
     );
     return MovieDetailModel.fromJson(res.data);
+  }
+
+  Future<List<VideoModel>> getMovieVideos(int movieId) async {
+    final res = await client.get(
+      '${ApiUrls.baseUrl}/movie/$movieId/videos',
+      options: Options(headers: _headers),
+    );
+    final results = res.data['results'] as List;
+    return results.map((e) => VideoModel.fromJson(e)).toList();
   }
 }

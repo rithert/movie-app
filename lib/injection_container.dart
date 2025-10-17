@@ -4,6 +4,7 @@ import 'package:app_movie/features/movie/data/repositories/movie_repository_impl
 import 'package:app_movie/features/movie/domain/repositories/movie_repository.dart';
 import 'package:app_movie/features/movie/domain/usecases/coming_movies.dart';
 import 'package:app_movie/features/movie/domain/usecases/movie_detail.dart';
+import 'package:app_movie/features/movie/domain/usecases/movie_video.dart';
 import 'package:app_movie/features/movie/domain/usecases/trend_movies.dart';
 import 'package:app_movie/features/movie/presentation/cubit/movies_cubit.dart';
 import 'package:app_movie/features/movie/presentation/cubit/movies_detail_cubit.dart';
@@ -37,6 +38,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetTrendingMovies(sl()));
   sl.registerLazySingleton(() => GetUpcomingMovies(sl()));
   sl.registerLazySingleton(() => GetMovieDetail(sl()));
+  sl.registerLazySingleton(() => GetMovieVideos(sl()));
 
   // Cubit
   sl.registerFactory(() => MoviesCubit(
@@ -46,5 +48,6 @@ Future<void> init() async {
 
   sl.registerFactory(() => MovieDetailCubit(
         getMovieDetail: sl(),
+        getMovieVideos: sl(),
       ));
 }
