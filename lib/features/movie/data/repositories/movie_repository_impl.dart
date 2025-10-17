@@ -1,3 +1,5 @@
+import 'package:app_movie/features/movie/data/models/detail_movie.dart';
+
 import '../../domain/entities/movie.dart';
 import '../../domain/repositories/movie_repository.dart';
 import '../datasources/movie_remote_data_source.dart';
@@ -38,7 +40,12 @@ class MovieRepositoryImpl implements MovieRepository {
   }
 
   @override
-  Future<Movie> getMovieDetail(int id) async {
-    throw UnimplementedError();
+  Future<MovieDetailModel> getMovieDetail(int id) async {
+    if (await networkInfo.isConnected) {
+      final movie = await remote.getMovieDetail(id);
+      return movie;
+    } else {
+      throw Exception('No hay conexión a internet');
+    }
   }
 }

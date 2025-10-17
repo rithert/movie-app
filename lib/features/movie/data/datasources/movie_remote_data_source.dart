@@ -1,5 +1,6 @@
 import 'package:app_movie/core/config/env.config.dart';
 import 'package:app_movie/core/constants/api_url.dart';
+import 'package:app_movie/features/movie/data/models/detail_movie.dart';
 import 'package:dio/dio.dart';
 import '../models/movie_model.dart';
 
@@ -31,11 +32,11 @@ class MovieRemoteDataSource {
     return results.map((e) => MovieModel.fromJson(e)).toList();
   }
 
-  Future<MovieModel> getMovieDetail(int id) async {
+  Future<MovieDetailModel> getMovieDetail(int id) async {
     final res = await client.get(
       '${ApiUrls.movieDetail}/$id',
       options: Options(headers: _headers),
     );
-    return MovieModel.fromJson(res.data);
+    return MovieDetailModel.fromJson(res.data);
   }
 }

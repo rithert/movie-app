@@ -1,18 +1,19 @@
 import 'package:app_movie/core/config/env.config.dart';
+import 'package:app_movie/core/utils/navigation_service.dart';
 import 'package:app_movie/features/movie/presentation/cubit/movies_cubit.dart';
 import 'package:app_movie/features/movie/presentation/pages/movies_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'injection_container.dart' as di;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inicializar variables de entorno
+  await Hive.initFlutter();
   await EnvConfig.init();
-
-  // Inicializar dependencias
   await di.init();
+
   runApp(const MainApp());
 }
 
@@ -21,11 +22,19 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Movie App',
-      home: BlocProvider(
-        create: (context) => di.sl<MoviesCubit>()..loadMovies(),
-        child: const MoviesPage(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<MoviesCubit>(
+          create: (_) => di.sl<MoviesCubit>()..loadMovies(),
+          lazy: false,
+        ),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Movie App',
+        navigatorKey: NavigationService.navigatorKey,
+        theme: ThemeData.dark(),
+        home: const MoviesPage(),
       ),
     );
   }

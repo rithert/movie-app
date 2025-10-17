@@ -14,19 +14,24 @@ class MoviesPage extends StatefulWidget {
   State<MoviesPage> createState() => _MoviesPageState();
 }
 
-class _MoviesPageState extends State<MoviesPage> {
+class _MoviesPageState extends State<MoviesPage>
+    with AutomaticKeepAliveClientMixin {
   String _selectedFilter = 'Todos';
+
+  @override
+  bool get wantKeepAlive => true;
 
   void _onFilterSelected(String filter) {
     setState(() {
       _selectedFilter = filter;
     });
-    // Aquí puedes agregar lógica para filtrar las películas
     print('Filtro seleccionado: $filter');
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -45,6 +50,7 @@ class _MoviesPageState extends State<MoviesPage> {
               final trending = movies.where((m) => m.isTrending).toList();
 
               return CustomScrollView(
+                key: const PageStorageKey('moviesScroll'),
                 slivers: [
                   SliverToBoxAdapter(
                     child: Padding(
@@ -56,9 +62,10 @@ class _MoviesPageState extends State<MoviesPage> {
                           const Text(
                             "Próximos estrenos",
                             style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold),
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           MoviesSectionWidget(movies: upcoming),
@@ -66,9 +73,10 @@ class _MoviesPageState extends State<MoviesPage> {
                           const Text(
                             "Tendencia",
                             style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold),
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           MoviesSectionWidget(movies: trending),
@@ -76,9 +84,10 @@ class _MoviesPageState extends State<MoviesPage> {
                           const Text(
                             "Recomendados para ti",
                             style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold),
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           MovieFilterBar(
@@ -86,7 +95,12 @@ class _MoviesPageState extends State<MoviesPage> {
                             selectedFilter: _selectedFilter,
                           ),
                           const SizedBox(height: 8),
-                          /* MoviesGridWidget(movies: recommended), */
+                          MoviesGridWidget(
+                            movies: trending
+                                .where((movie) =>
+                                    _selectedFilter == 'Todos' || true)
+                                .toList(),
+                          ),
                         ],
                       ),
                     ),
